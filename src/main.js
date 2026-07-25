@@ -40,6 +40,7 @@ const motionPanels = [...document.querySelectorAll("[data-motion-panel]")];
 const motionStatus = document.querySelector("#motion-status");
 const motionStopButton = document.querySelector("#motion-stop");
 const motionPauseButton = document.querySelector("#motion-pause");
+const motionAutoButton = document.querySelector("#motion-auto");
 const motionProgress = document.querySelector("#motion-progress");
 const motionTime = document.querySelector("#motion-time");
 
@@ -165,7 +166,12 @@ function startViewer() {
   let motionMixer = null;
   let activeMotionAction = null;
   let activeMotionId = null;
+  let activeMotionAutomatic = false;
   let motionRequestId = 0;
+  let randomAutoEnabled = true;
+  let randomMotionTimer = null;
+  let lastRandomMotionId = null;
+  let motionsReady = false;
 
   // Procedural idle bone handles (captured once the VRM loads).
   let spineBone = null;
@@ -251,6 +257,55 @@ function startViewer() {
     captureIdleBones(currentVrm);
   }
 
+  function clearRandomMotionTimer() {
+    if (randomMotionTimer !== null) {
+      window.clearTimeout(randomMotionTimer);
+      randomMotionTimer = null;
+    }
+  }
+
+  function syncRandomAutoButton() {
+    if (!motionAutoButton) return;
+    motionAutoButton.classList.toggle("active", randomAutoEnabled);
+    motionAutoButton.setAttribute("aria-pressed", String(randomAutoEnabled));
+    motionAutoButton.textContent = randomAutoEnabled ? "RANDOM AUTO · ON" : "RANDOM AUTO · OFF";
+  }
+
+  function pickRandomMotionId() {
+    const ids = Object.keys(motions);
+    const candidates = ids.filter((id) => id !== lastRandomMotionId);
+    return candidates[Math.floor(Math.random() * candidates.length)];
+  }
+
+  function scheduleRandomMotion(delay = 900) {
+    clearRandomMotionTimer();
+    if (!randomAutoEnabled || !motionsReady || !currentVrm) return;
+    randomMotionTimer = window.setTimeout(() => {
+      randomMotionTimer = null;
+      const id = pickRandomMotionId();
+      lastRandomMotionId = id;
+      playMotion(id, { automatic: true });
+    }, delay);
+  }
+
+  function setRandomAuto(enabled, { immediate = false } = {}) {
+    randomAutoEnabled = enabled;
+    clearRandomMotionTimer();
+    syncRandomAutoButton();
+
+    if (!enabled) {
+      activeMotionAutomatic = false;
+      return;
+    }
+
+    if (immediate) {
+      stopMotion({ announce: false, disableRandom: false });
+      scheduleRandomMotion(0);
+    } else if (!activeMotionAction) {
+      scheduleRandomMotion();
+    }
+  }
+
   function updateMotionSelection(id, playing) {
     motionButtons.forEach((button) => {
       const selected = button.dataset.motion === id && playing;
@@ -272,10 +327,16 @@ function startViewer() {
     }
   }
 
-  function stopMotion({ announce = true } = {}) {
+  function stopMotion({ announce = true, disableRandom = true } = {}) {
+    clearRandomMotionTimer();
+    if (disableRandom) {
+      randomAutoEnabled = false;
+      syncRandomAutoButton();
+    }
     motionRequestId += 1;
     resetMotionPose();
     activeMotionId = null;
+    activeMotionAutomatic = false;
     updateMotionSelection(null, false);
     if (motionStopButton) motionStopButton.disabled = true;
     if (motionPauseButton) motionPauseButton.disabled = true;
@@ -291,13 +352,14 @@ function startViewer() {
     }
   }
 
-  async function playMotion(id) {
+  async function playMotion(id, { automatic = false } = {}) {
     if (!currentVrm || !motions[id]) return;
 
+    clearRandomMotionTimer();
     const requestId = ++motionRequestId;
     const motion = motions[id];
     if (motionStatus) {
-      motionStatus.textContent = `${motion.label} · LOADING`;
+      motionStatus.textContent = `${automatic ? "RANDOM · " : ""}${motion.label} · LOADING`;
       motionStatus.dataset.state = "loading";
     }
     setMotionButtonsEnabled(false);
@@ -311,22 +373,24 @@ function startViewer() {
       motionMixer ??= new THREE.AnimationMixer(currentVrm.scene);
       const action = motionMixer.clipAction(clip);
       action.reset();
-      action.setLoop(motion.loop ? THREE.LoopRepeat : THREE.LoopOnce, motion.loop ? Infinity : 1);
-      action.clampWhenFinished = !motion.loop;
+      const shouldLoop = motion.loop && !automatic;
+      action.setLoop(shouldLoop ? THREE.LoopRepeat : THREE.LoopOnce, shouldLoop ? Infinity : 1);
+      action.clampWhenFinished = !shouldLoop;
       action.play();
 
       activeMotionAction = action;
       activeMotionId = id;
+      activeMotionAutomatic = automatic;
       updateMotionSelection(id, true);
       if (motionStopButton) motionStopButton.disabled = false;
       if (motionPauseButton) motionPauseButton.disabled = false;
       if (motionProgress) motionProgress.disabled = false;
       if (motionStatus) {
-        motionStatus.textContent = `${motion.label} · ${motion.loop ? "LOOPING" : "PLAYING"}`;
+        motionStatus.textContent = `${automatic ? "RANDOM · " : ""}${motion.label} · ${shouldLoop ? "LOOPING" : "PLAYING"}`;
         motionStatus.dataset.state = "playing";
       }
       syncMotionTransport();
-      liquid?.splat(0.44, 0.56, motion.loop ? 14 : 22, motion.loop ? -8 : 7);
+      liquid?.splat(0.44, 0.56, shouldLoop ? 14 : 22, shouldLoop ? -8 : 7);
     } catch (error) {
       console.error("[asahino-tera] Failed to play VRMA motion:", error);
       stopMotion({ announce: false });
@@ -439,6 +503,19 @@ function startViewer() {
           const completedMotion = motions[activeMotionId];
           updateMotionSelection(activeMotionId, false);
           action.paused = true;
+          if (activeMotionAutomatic && randomAutoEnabled) {
+            activeMotionAction = null;
+            activeMotionId = null;
+            activeMotionAutomatic = false;
+            if (motionPauseButton) motionPauseButton.disabled = true;
+            if (motionProgress) motionProgress.disabled = true;
+            if (motionStatus) {
+              motionStatus.textContent = `${completedMotion.label} · RANDOM NEXT SIGNAL`;
+              motionStatus.dataset.state = "ready";
+            }
+            scheduleRandomMotion();
+            return;
+          }
           if (motionPauseButton) {
             motionPauseButton.textContent = "REPLAY";
             motionPauseButton.disabled = false;
@@ -452,11 +529,13 @@ function startViewer() {
 
         Promise.all(Object.keys(motions).map((id) => loadMotion(id)))
           .then(() => {
+            motionsReady = true;
             setMotionButtonsEnabled(true);
             if (motionStatus) {
-              motionStatus.textContent = "10 MOTIONS READY · SELECT A PROTOCOL";
+              motionStatus.textContent = "10 MOTIONS READY · RANDOM AUTO START";
               motionStatus.dataset.state = "ready";
             }
+            setRandomAuto(true, { immediate: true });
           })
           .catch((error) => {
             console.error("[asahino-tera] Failed to preload VRMA motions:", error);
@@ -544,7 +623,10 @@ function startViewer() {
   // ── Controls wiring ─────────────────────────────────────────────────────
 
   motionButtons.forEach((button) => {
-    button.addEventListener("click", () => playMotion(button.dataset.motion));
+    button.addEventListener("click", () => {
+      setRandomAuto(false);
+      playMotion(button.dataset.motion);
+    });
   });
 
   motionTabs.forEach((tab, index) => {
@@ -563,11 +645,14 @@ function startViewer() {
   });
 
   motionStopButton?.addEventListener("click", () => stopMotion());
+  motionAutoButton?.addEventListener("click", () => {
+    setRandomAuto(!randomAutoEnabled, { immediate: !randomAutoEnabled });
+  });
   motionPauseButton?.addEventListener("click", () => {
     if (!activeMotionAction || !activeMotionId) return;
     const duration = activeMotionAction.getClip().duration;
     if (activeMotionAction.paused && activeMotionAction.time >= duration - 0.02) {
-      playMotion(activeMotionId);
+      playMotion(activeMotionId, { automatic: activeMotionAutomatic });
       return;
     }
     activeMotionAction.paused = !activeMotionAction.paused;
@@ -626,7 +711,7 @@ function startViewer() {
 
   // RESET CAMERA
   resetButton?.addEventListener("click", () => {
-    stopMotion({ announce: false });
+    stopMotion({ announce: false, disableRandom: false });
     currentFraming = "full";
     if (currentVrm) currentVrm.scene.rotation.y = displayRotation;
     camera.position.copy(homePosition);
@@ -639,9 +724,10 @@ function startViewer() {
     controls.update();
     syncFrameButton();
     if (motionStatus) {
-      motionStatus.textContent = "VIEW + MOTION RESET · READY";
+      motionStatus.textContent = "VIEW RESET · RANDOM AUTO RESTART";
       motionStatus.dataset.state = "ready";
     }
+    setRandomAuto(true, { immediate: true });
   });
 
   // FULLSCREEN
@@ -663,6 +749,7 @@ function startViewer() {
   window.addEventListener(
     "pagehide",
     () => {
+      clearRandomMotionTimer();
       timer.dispose();
       liquid?.destroy();
     },

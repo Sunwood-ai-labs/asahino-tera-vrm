@@ -1338,6 +1338,13 @@ h1 {
   color: #5ce0d6;
 }
 
+.motion-actions button.active,
+.motion-actions button[aria-pressed="true"] {
+  border-color: var(--cyan);
+  color: #5ce0d6;
+  background: rgba(24, 183, 181, 0.12);
+}
+
 .motion-actions button:disabled {
   cursor: default;
   opacity: 0.28;

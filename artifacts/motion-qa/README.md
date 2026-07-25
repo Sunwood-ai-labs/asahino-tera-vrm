@@ -7,6 +7,13 @@ Source: corrected top-level VRMA files from
 
 ## Functional checks
 
+- Default state starts random motion playback after all 10 files preload.
+- Automatic playback treats every selected motion as one-shot, waits briefly,
+  then selects another motion while excluding the immediately previous ID.
+- A 30-second exploratory pass observed five transitions with no adjacent
+  repeat, console error, or failed request.
+- Manual motion selection turns RANDOM AUTO off; STOP and Escape also turn it
+  off. The RANDOM AUTO control and RESET both restart automatic playback.
 - All 10 motion files preloaded without console or request errors.
 - GAME / IDLE / TALK tabs changed panels; arrow-key tab navigation selected IDLE.
 - Every motion played on the Asahino Terra VRM and accepted range input at
@@ -20,6 +27,8 @@ Source: corrected top-level VRMA files from
 
 ## Visual checks
 
+- `../desktop-random-auto-final.png`: desktop RANDOM AUTO ON/PLAYING state.
+- `../mobile-random-auto-final.png`: 390px RANDOM AUTO ON/PLAYING state.
 - `all-motions-midpoint.png`: all ten motions at 50%.
 - `risky-oblique-midpoint.png`: oblique 50% frames for accuse, talk-whisper,
   and talk-press.
