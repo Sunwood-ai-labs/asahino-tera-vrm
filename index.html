@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="旭野テラ / ASAHINO TERRA — 太陽技術のフィールド調査員。陽光が地表をよむように現場の痕跡を観測する、DAWN FIELD TERMINAL。"
+    />
+    <meta name="theme-color" content="#F3EEE3" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23F3EEE3'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%23E66A21'/%3E%3Ccircle cx='16' cy='16' r='9.5' fill='none' stroke='%2318B7B5' stroke-width='1.5'/%3E%3C/svg%3E"
+    />
+    <title>旭野 テラ / ASAHINO TERRA</title>
+  </head>
+  <body>
+    <div id="liquid-stage">
+      <canvas id="liquid-source" aria-hidden="true"></canvas>
+
+      <div id="app">
+        <header class="site-header">
+          <a class="identity" href="#" aria-label="旭野テラ ホーム">
+            <span class="identity-sigil" aria-hidden="true">
+              <i></i><i></i><i></i>
+            </span>
+            <span class="identity-text">
+              <b>旭野テラ / ASAHINO TERRA</b>
+              <small>DAWN FIELD TERMINAL · 太陽観測フィールド端末</small>
+            </span>
+          </a>
+
+          <div class="header-signal" aria-live="polite">
+            <span class="signal-pulse" aria-hidden="true"></span>
+            <span>AVATAR LINK</span>
+            <strong id="header-status">LINKING</strong>
+          </div>
+
+          <a
+            class="repo-link"
+            href="https://github.com/Sunwood-ai-labs/asahino-tera-vrm"
+            aria-label="GitHubリポジトリ: asahino-tera-vrm"
+          >
+            <span>GITHUB</span>
+            <b aria-hidden="true">↗</b>
+          </a>
+        </header>
+
+        <main class="station">
+          <div class="giant-type" aria-hidden="true">
+            <span class="giant-en">TERRA</span>
+            <span class="giant-jp">旭野</span>
+          </div>
+
+          <div class="hero-rail">
+            <section class="intro" aria-labelledby="character-name">
+              <p class="serial">FIELD LOG <b>№ 001 / SOLAR DIVISION</b></p>
+
+              <h1 id="character-name">
+                <span class="name-jp">旭野 テラ</span>
+                <span class="name-en">ASAHINO<br />TERRA</span>
+              </h1>
+            </section>
+
+            <section class="concept" aria-label="コンセプト">
+              <div class="tagline">
+                <span class="tagline-rule" aria-hidden="true"></span>
+                <div class="tagline-body">
+                  <p class="copy-jp">
+                    旭野テラは、<em>陽光が地表をよむように</em>現場を歩く太陽技術の調査員。
+                    どんなに微かな残像も見逃さない観察眼と、明日を信じる楽観が、光の痕跡を信号へと変える。
+                    このフィールド端末は、彼女のレンズが拾った昼の気配を立ち上げる。
+                  </p>
+                  <p class="copy-en">
+                    <em>Asahino Terra</em> walks the field the way sunlight reads the land &mdash;
+                    a solar-tech investigator who treats every residual as evidence.
+                    Her observant optimism turns the day&rsquo;s faint traces into readable signal,
+                    and this terminal stands up the live field she sees through her lens.
+                  </p>
+                </div>
+              </div>
+
+              <ul class="traits" aria-label="フィールド特性">
+                <li><b>観察眼</b><span>OBSERVANT</span></li>
+                <li><b>楽観家</b><span>OPTIMIST</span></li>
+                <li><b>痕跡読取</b><span>TRACE&#8209;READER</span></li>
+              </ul>
+            </section>
+          </div>
+
+          <section class="viewer-zone" aria-label="旭野テラ 3Dモデル">
+            <div class="lens-frame" aria-hidden="true">
+              <span class="sun-disc"></span>
+              <span class="orbital orbital-a"></span>
+              <span class="orbital orbital-b"></span>
+              <span class="orbital orbital-c"></span>
+              <span class="rim-ticks"></span>
+              <span class="corner corner-a"></span>
+              <span class="corner corner-b"></span>
+              <span class="corner corner-c"></span>
+              <span class="corner corner-d"></span>
+              <span class="scan-line"></span>
+              <span class="axis axis-x">AZ &mdash; 047.81</span>
+              <span class="axis axis-y">EL &mdash; 009.24</span>
+            </div>
+
+            <div class="viewer-shell">
+              <canvas
+                id="vrm-canvas"
+                aria-label="旭野テラ ASAHINO TERRA の3Dモデル"
+              ></canvas>
+
+              <div id="loading" class="loading-panel" role="status" aria-live="polite">
+                <span>STANDING UP FIELD</span>
+                <strong id="loading-value">0%</strong>
+                <i><b id="loading-bar"></b></i>
+              </div>
+
+              <div id="error-panel" class="error-panel" hidden>
+                <strong>FIELD LINK LOST</strong>
+                <span>
+                  WebGL対応ブラウザで再読み込みしてください。<br />
+                  Reload on a WebGL-capable browser.
+                </span>
+              </div>
+            </div>
+
+            <div class="interaction-hint" aria-hidden="true">
+              <span>DRAG</span>
+              <i></i>
+              <span>ORBIT</span>
+              <i></i>
+              <span>SCROLL</span>
+              <i></i>
+              <span>ZOOM</span>
+            </div>
+          </section>
+
+          <aside class="telemetry" aria-label="フィールド計測">
+            <div class="telemetry-heading">
+              <span>FIELD TELEMETRY</span>
+              <b>SOL &mdash; 01</b>
+            </div>
+
+            <dl class="metrics">
+              <div>
+                <dt>SOLAR FLUX</dt>
+                <dd><span style="--value: 92%"></span><b>92</b></dd>
+              </div>
+              <div>
+                <dt>TRACE DENSITY</dt>
+                <dd><span style="--value: 78%"></span><b>78</b></dd>
+              </div>
+              <div>
+                <dt>LENS TEMP</dt>
+                <dd><span style="--value: 64%"></span><b>64</b></dd>
+              </div>
+            </dl>
+
+            <blockquote>
+              &ldquo;光は残す。読む者がいる限り、その痕跡は信号になる。&rdquo;
+              <cite>Light leaves a trace &mdash; it becomes signal the moment someone reads it.</cite>
+            </blockquote>
+          </aside>
+
+          <aside class="rig-proof" aria-label="リグ参考レンダー">
+            <span class="rig-proof-label">REFERENCE &middot; RIG PROOF</span>
+            <div class="rig-proof-row">
+              <figure>
+                <img src="./renders/front.png" alt="旭野テラ 前面レンダー" loading="lazy" />
+                <figcaption>FRONT</figcaption>
+              </figure>
+              <figure>
+                <img src="./renders/oblique.png" alt="旭野テラ 斜面レンダー" loading="lazy" />
+                <figcaption>OBLIQUE</figcaption>
+              </figure>
+              <figure>
+                <img src="./renders/back.png" alt="旭野テラ 背面レンダー" loading="lazy" />
+                <figcaption>BACK</figcaption>
+              </figure>
+            </div>
+          </aside>
+
+          <nav class="control-rail" aria-label="3D表示コントロール">
+            <div class="control-status">
+              <span>STATUS</span>
+              <strong id="model-status">MODEL LOADING</strong>
+            </div>
+
+            <button id="rotate-button" class="control" type="button" aria-pressed="false" aria-label="自動旋回の切替">
+              <span>01</span>
+              <b>AUTO ORBIT</b>
+              <i aria-hidden="true"></i>
+            </button>
+
+            <button id="light-button" class="control" type="button" aria-pressed="false" aria-label="照明モード切替：太陽光／解析">
+              <span>02</span>
+              <b>SOLAR LIGHT</b>
+              <i aria-hidden="true"></i>
+            </button>
+
+            <button id="frame-button" class="control" type="button" aria-pressed="false" aria-label="フレーム切り替え：全身／バスト">
+              <span>03</span>
+              <b>FULL BODY</b>
+              <i aria-hidden="true"></i>
+            </button>
+
+            <button id="reset-button" class="control" type="button" aria-label="カメラをリセット">
+              <span>04</span>
+              <b>RESET VIEW</b>
+              <i aria-hidden="true"></i>
+            </button>
+
+            <button id="fullscreen-button" class="control" type="button" aria-label="フルスクリーン表示">
+              <span>05</span>
+              <b>FULLSCREEN</b>
+              <i aria-hidden="true"></i>
+            </button>
+          </nav>
+        </main>
+
+        <footer class="ticker" aria-hidden="true">
+          <div>
+            <span>SOLAR&#8209;TECH FIELD UNIT</span>
+            <i>◆</i>
+            <span>DAWN FIELD TERMINAL</span>
+            <i>◆</i>
+            <span>VRM 1.0</span>
+            <i>◆</i>
+            <span>CANVAS UI LIQUID ENGINE</span>
+            <i>◆</i>
+            <span>AI WEREWOLF CHARACTER</span>
+            <i>◆</i>
+            <span>INTERACTIVE PERSONA</span>
+            <i>◆</i>
+          </div>
+          <div>
+            <span>SOLAR&#8209;TECH FIELD UNIT</span>
+            <i>◆</i>
+            <span>DAWN FIELD TERMINAL</span>
+            <i>◆</i>
+            <span>VRM 1.0</span>
+            <i>◆</i>
+            <span>CANVAS UI LIQUID ENGINE</span>
+            <i>◆</i>
+            <span>AI WEREWOLF CHARACTER</span>
+            <i>◆</i>
+            <span>INTERACTIVE PERSONA</span>
+            <i>◆</i>
+          </div>
+        </footer>
+      </div>
+
+      <canvas id="liquid-output" aria-hidden="true"></canvas>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
