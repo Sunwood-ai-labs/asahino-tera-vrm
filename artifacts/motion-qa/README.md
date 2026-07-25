@@ -27,6 +27,9 @@ Source: corrected top-level VRMA files from
 
 ## Visual checks
 
+- `../live-random-auto-verified.png`: deployed GitHub Pages URL after the
+  successful `a07e72a` deployment, showing `MODEL ONLINE`, RANDOM AUTO ON, and
+  an active `PLAYING` motion.
 - `../desktop-random-auto-final.png`: desktop RANDOM AUTO ON/PLAYING state.
 - `../mobile-random-auto-final.png`: 390px RANDOM AUTO ON/PLAYING state.
 - `all-motions-midpoint.png`: all ten motions at 50%.
