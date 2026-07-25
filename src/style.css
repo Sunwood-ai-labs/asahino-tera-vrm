@@ -1074,6 +1074,275 @@ h1 {
   color: var(--cyan-deep);
 }
 
+/* -------------------------- motion field lab ----------------------- */
+
+.motion-lab {
+  position: relative;
+  z-index: 5;
+  display: grid;
+  grid-template-columns: minmax(240px, 0.72fr) minmax(560px, 1.55fr);
+  gap: clamp(28px, 5vw, 84px);
+  align-items: start;
+  padding: clamp(56px, 8vw, 116px) clamp(22px, 5vw, 86px);
+  border-top: 1px solid var(--hairline-strong);
+  background:
+    linear-gradient(112deg, rgba(230, 106, 33, 0.08), transparent 34%),
+    linear-gradient(292deg, rgba(24, 183, 181, 0.1), transparent 44%),
+    rgba(243, 238, 227, 0.86);
+}
+
+.motion-lab::before {
+  position: absolute;
+  inset: 18px;
+  content: "";
+  pointer-events: none;
+  border: 1px solid var(--hairline);
+}
+
+.motion-lab-heading {
+  position: sticky;
+  top: 94px;
+  padding: 4px 0 0;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.motion-lab-heading > div > span {
+  color: var(--flare);
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+  letter-spacing: 0.19em;
+}
+
+.motion-lab-heading h2 {
+  max-width: 11em;
+  margin: 15px 0 25px;
+  font-family: var(--font-gothic);
+  font-size: clamp(1.9rem, 3.3vw, 4rem);
+  line-height: 1.22;
+  letter-spacing: 0.05em;
+}
+
+.motion-lab-heading p {
+  max-width: 37em;
+  margin: 0;
+  color: var(--charcoal-soft);
+  font-family: var(--font-gothic);
+  font-size: 0.82rem;
+  line-height: 2;
+  letter-spacing: 0.04em;
+}
+
+.motion-console {
+  position: relative;
+  border: 1px solid var(--hairline-strong);
+  background: rgba(255, 255, 255, 0.48);
+  box-shadow: 18px 22px 0 rgba(24, 183, 181, 0.07);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.motion-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-bottom: 1px solid var(--hairline-strong);
+}
+
+.motion-tabs button {
+  min-height: 50px;
+  border: 0;
+  border-right: 1px solid var(--hairline-strong);
+  color: var(--charcoal-soft);
+  background: transparent;
+  font: inherit;
+  font-size: 0.59rem;
+  letter-spacing: 0.17em;
+  cursor: pointer;
+}
+
+.motion-tabs button:last-child {
+  border-right: 0;
+}
+
+.motion-tabs button b {
+  margin-left: 7px;
+  color: var(--flare);
+  font-family: var(--font-mono);
+}
+
+.motion-tabs button:hover,
+.motion-tabs button:focus-visible,
+.motion-tabs button[aria-selected="true"] {
+  color: var(--cyan-deep);
+  background: rgba(24, 183, 181, 0.1);
+}
+
+.motion-tabs button:focus-visible,
+.motion-trigger:focus-visible,
+.motion-actions button:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: -4px;
+}
+
+.motion-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.motion-trigger {
+  position: relative;
+  min-height: 118px;
+  padding: 19px 21px;
+  overflow: hidden;
+  border: 0;
+  border-right: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--hairline);
+  color: var(--charcoal);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: color 180ms ease, background 180ms ease, opacity 180ms ease;
+}
+
+.motion-trigger:nth-child(2n) {
+  border-right: 0;
+}
+
+.motion-trigger:nth-last-child(-n + 2) {
+  border-bottom: 0;
+}
+
+.motion-trigger::after {
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+  width: 7px;
+  height: 7px;
+  content: "";
+  border-radius: 50%;
+  background: var(--flare);
+  opacity: 0.22;
+}
+
+.motion-trigger span,
+.motion-trigger b,
+.motion-trigger small {
+  display: block;
+}
+
+.motion-trigger span {
+  color: var(--flare);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.16em;
+}
+
+.motion-trigger b {
+  margin-top: 11px;
+  font-family: var(--font-gothic);
+  font-size: clamp(1rem, 1.45vw, 1.3rem);
+  letter-spacing: 0.1em;
+}
+
+.motion-trigger small {
+  margin-top: 7px;
+  color: var(--charcoal-soft);
+  font-size: 0.48rem;
+  letter-spacing: 0.13em;
+}
+
+.motion-trigger:hover,
+.motion-trigger:focus-visible,
+.motion-trigger.active {
+  color: var(--cyan-deep);
+  background: rgba(24, 183, 181, 0.1);
+}
+
+.motion-trigger.active::after {
+  opacity: 1;
+  animation: pulse 1.35s ease-out infinite;
+}
+
+.motion-trigger:disabled {
+  cursor: wait;
+  opacity: 0.36;
+}
+
+.motion-transport {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(180px, 0.75fr) auto;
+  gap: 18px;
+  align-items: center;
+  min-height: 76px;
+  padding: 13px 18px;
+  border-top: 1px solid var(--hairline-strong);
+  background: rgba(41, 43, 43, 0.92);
+  color: var(--ivory);
+}
+
+.motion-readout {
+  display: grid;
+  gap: 5px;
+}
+
+#motion-status {
+  color: rgba(243, 238, 227, 0.74);
+  font-family: var(--font-mono);
+  font-size: 0.49rem;
+  letter-spacing: 0.1em;
+}
+
+#motion-status[data-state="playing"],
+#motion-status[data-state="paused"] {
+  color: #5ce0d6;
+}
+
+#motion-time {
+  color: rgba(243, 238, 227, 0.45);
+  font-family: var(--font-mono);
+  font-size: 0.48rem;
+  letter-spacing: 0.12em;
+}
+
+#motion-progress {
+  width: 100%;
+  height: 2px;
+  accent-color: var(--flare);
+  cursor: ew-resize;
+}
+
+#motion-progress:disabled {
+  cursor: default;
+  opacity: 0.3;
+}
+
+.motion-actions {
+  display: flex;
+  gap: 7px;
+}
+
+.motion-actions button {
+  min-width: 72px;
+  padding: 9px 11px;
+  border: 1px solid rgba(243, 238, 227, 0.24);
+  color: var(--ivory);
+  background: transparent;
+  font: inherit;
+  font-size: 0.48rem;
+  letter-spacing: 0.12em;
+  cursor: pointer;
+}
+
+.motion-actions button:hover {
+  border-color: var(--cyan);
+  color: #5ce0d6;
+}
+
+.motion-actions button:disabled {
+  cursor: default;
+  opacity: 0.28;
+}
+
 /* ------------------------------ ticker ------------------------------ */
 
 .ticker {
@@ -1198,6 +1467,19 @@ button:focus-visible {
 
 /* tablet / small desktop: nudge viewer so margins don't collide */
 @media (max-width: 1000px) {
+  .motion-lab {
+    grid-template-columns: 1fr;
+  }
+
+  .motion-lab-heading {
+    position: relative;
+    top: auto;
+  }
+
+  .motion-lab-heading h2 {
+    max-width: none;
+  }
+
   .telemetry,
   .control-rail {
     width: 220px;
@@ -1218,6 +1500,22 @@ button:focus-visible {
    overflows horizontally at 390px. Every region becomes in-flow. */
 
 @media (max-width: 820px) {
+  .motion-lab {
+    padding: 58px 22px;
+  }
+
+  .motion-console {
+    box-shadow: 10px 12px 0 rgba(24, 183, 181, 0.07);
+  }
+
+  .motion-transport {
+    grid-template-columns: 1fr;
+  }
+
+  .motion-actions button {
+    flex: 1;
+  }
+
   .station {
     overflow: visible;
     min-height: 0;
@@ -1334,6 +1632,32 @@ button:focus-visible {
 /* ----------------------- narrow phone refine ------------------------ */
 
 @media (max-width: 480px) {
+  .motion-lab {
+    padding: 48px 15px;
+  }
+
+  .motion-lab::before {
+    inset: 8px;
+  }
+
+  .motion-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .motion-trigger {
+    min-height: 96px;
+    border-right: 0;
+    border-bottom: 1px solid var(--hairline);
+  }
+
+  .motion-trigger:nth-last-child(-n + 2) {
+    border-bottom: 1px solid var(--hairline);
+  }
+
+  .motion-trigger:last-child {
+    border-bottom: 0;
+  }
+
   .site-header {
     grid-template-columns: 1fr auto;
     gap: 10px;

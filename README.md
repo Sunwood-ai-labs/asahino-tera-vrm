@@ -35,7 +35,7 @@ npm run preview
 
 ## Controls
 
-5つのコントロールを用意しています。
+5つの表示コントロールと、10本のAI人狼モーションを用意しています。
 
 - **AUTO ORBIT** (`#rotate-button`) — 自動回転の ON / OFF
 - **SOLAR / ANALYSIS LIGHT** (`#light-button`) — 太陽光モードと解析光モードの切替
@@ -43,10 +43,14 @@ npm run preview
 - **RESET CAMERA** (`#reset-button`) — 全身フレーム・既定回転・カメラ位置のリセット
 - **FULLSCREEN** (`#fullscreen-button`) — フルスクリーン表示の切替
 
+モーションラボは `GAME / IDLE / TALK` の3カテゴリです。各モーションは再生・
+一時停止・再開・シーク・停止に対応し、`Esc` でも停止できます。
+
 ## Project structure
 
 - `public/models/asahino-tera.vrm` — VRM 1.0 モデル
 - `public/renders/{front,oblique,back}.png` — 参考用レンダー（ビューアには使用しない）
+- `public/motions/*.vrma` — 夜凪ノア版で補正済みのAI人狼モーション10本
 - `index.html` — エントリーページ（デザイン担当）
 - `src/main.js` — Three.js / three-vrm ビューア
 - `src/style.css` — ビジュアルデザイン（デザイン担当）
@@ -60,18 +64,24 @@ npm run preview
 - Vanilla TypeScript / JavaScript（フレームワーク非依存）
 - [Three.js](https://threejs.org/) 0.185.1
 - [@pixiv/three-vrm](https://github.com/pixiv/three-vrm) 3.5.5
+- [@pixiv/three-vrm-animation](https://github.com/pixiv/three-vrm) 3.5.5
 - [Canvas UI](https://canvasui.dev/) — Liquid 流体エフェクト
 
-### Procedural idle motion
+### Motion system
 
-待機モーションはVRMAファイルや外部モーションライブラリに依存せず、アニメーションループ内で手続き的に生成しています（呼吸に相当する spine / chest の微小な正弦回転と、頭の微かな揺らぎ）。そのため `@pixiv/three-vrm-animation` は意図的に依存から外しています。`prefers-reduced-motion` を尊重し、 Reduce 設定時は振幅をほぼゼロにします。
+通常待機時は spine / chest / head の微細な手続きモーションを使い、選択時は
+`@pixiv/three-vrm-animation` で補正済みVRMAを旭野テラのリグへ適用します。
+停止・ビューリセット時は正規化ポーズをリセットしてからテラの自然な立ち姿へ戻すため、
+直前の演技姿勢は残りません。手続き待機は `prefers-reduced-motion` を尊重します。
 
 サードパーティのライセンス表記は [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) にまとめています。
 
 ## Source and reference acknowledgment
 
 - 流体エフェクトの `src/canvasui/LiquidVanilla.ts` は [Canvas UI](https://canvasui.dev/) の Liquid（Vanilla TypeScript）コンポーネントを取り込んで本サイト向けに最小限の調整を行ったものです。
-- 本リポジトリは独立した新規制作です。近接する参考実装として `yonagi-noa-vrm` リポジトリを参照しましたが、本プロジェクトはそのコピーではなく、モーションファイル・比較ページ・付帯スクリプトを持たない独立的な構成です。
+- 本リポジトリは独立した新規制作です。`yonagi-noa-vrm` は読取専用の参考実装として扱い、
+  同リポジトリの `public/motions/` にある補正済み10本のみを正式に再利用しています。
+  `raw-ardy/` の未補正版は接続していません。
 
 ## Asset rights
 

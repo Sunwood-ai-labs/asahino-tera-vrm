@@ -219,6 +219,136 @@
           </nav>
         </main>
 
+        <section class="motion-lab" aria-labelledby="motion-title">
+          <div class="motion-lab-heading">
+            <div>
+              <span>YONAGI NOA MOTION ARCHIVE / 10 PROTOCOLS</span>
+              <h2 id="motion-title">人狼モーション・フィールドラボ</h2>
+            </div>
+            <p>
+              夜凪ノアで補正・検証したVRMAを、旭野テラのリグで再生。
+              観察、対話、追及までAI人狼の演技をその場で切り替えられます。
+            </p>
+          </div>
+
+          <div class="motion-console">
+            <div class="motion-tabs" role="tablist" aria-label="モーションカテゴリー">
+              <button
+                id="motion-tab-game"
+                type="button"
+                role="tab"
+                aria-selected="true"
+                aria-controls="motion-panel-game"
+                data-motion-filter="game"
+              >
+                GAME <b>04</b>
+              </button>
+              <button
+                id="motion-tab-idle"
+                type="button"
+                role="tab"
+                aria-selected="false"
+                aria-controls="motion-panel-idle"
+                data-motion-filter="idle"
+                tabindex="-1"
+              >
+                IDLE <b>03</b>
+              </button>
+              <button
+                id="motion-tab-talk"
+                type="button"
+                role="tab"
+                aria-selected="false"
+                aria-controls="motion-panel-talk"
+                data-motion-filter="talk"
+                tabindex="-1"
+              >
+                TALK <b>03</b>
+              </button>
+            </div>
+
+            <div
+              id="motion-panel-game"
+              class="motion-grid"
+              role="tabpanel"
+              aria-labelledby="motion-tab-game"
+              data-motion-panel="game"
+            >
+              <button class="motion-trigger" type="button" data-motion="observe" aria-pressed="false" disabled>
+                <span>01 / LOOP</span><b>観察</b><small>OBSERVE · 5.6S</small>
+              </button>
+              <button class="motion-trigger" type="button" data-motion="accuse" aria-pressed="false" disabled>
+                <span>02 / ONCE</span><b>告発</b><small>ACCUSE · 4.2S</small>
+              </button>
+              <button class="motion-trigger" type="button" data-motion="deny" aria-pressed="false" disabled>
+                <span>03 / ONCE</span><b>弁明</b><small>DENY · 4.8S</small>
+              </button>
+              <button class="motion-trigger" type="button" data-motion="victory" aria-pressed="false" disabled>
+                <span>04 / ONCE</span><b>勝利</b><small>VICTORY · 5.4S</small>
+              </button>
+            </div>
+
+            <div
+              id="motion-panel-idle"
+              class="motion-grid"
+              role="tabpanel"
+              aria-labelledby="motion-tab-idle"
+              data-motion-panel="idle"
+              hidden
+            >
+              <button class="motion-trigger" type="button" data-motion="idle-breathe" aria-pressed="false" disabled>
+                <span>05 / ONCE</span><b>静かな呼吸</b><small>BREATHE · 6.35S</small>
+              </button>
+              <button class="motion-trigger" type="button" data-motion="idle-listen" aria-pressed="false" disabled>
+                <span>06 / ONCE</span><b>気配を聴く</b><small>LISTEN · 7.15S</small>
+              </button>
+              <button class="motion-trigger" type="button" data-motion="idle-suspicion" aria-pressed="false" disabled>
+                <span>07 / ONCE</span><b>疑念を読む</b><small>SUSPICION · 6.75S</small>
+              </button>
+            </div>
+
+            <div
+              id="motion-panel-talk"
+              class="motion-grid"
+              role="tabpanel"
+              aria-labelledby="motion-tab-talk"
+              data-motion-panel="talk"
+              hidden
+            >
+              <button class="motion-trigger" type="button" data-motion="talk-calm" aria-pressed="false" disabled>
+                <span>08 / ONCE</span><b>冷静な説明</b><small>CALM · 5.55S</small>
+              </button>
+              <button class="motion-trigger" type="button" data-motion="talk-whisper" aria-pressed="false" disabled>
+                <span>09 / ONCE</span><b>秘密の囁き</b><small>WHISPER · 4.75S</small>
+              </button>
+              <button class="motion-trigger" type="button" data-motion="talk-press" aria-pressed="false" disabled>
+                <span>10 / ONCE</span><b>核心を追及</b><small>PRESS · 5.15S</small>
+              </button>
+            </div>
+
+            <div class="motion-transport">
+              <div class="motion-readout">
+                <span id="motion-status" role="status" aria-live="polite">AWAITING AVATAR LINK</span>
+                <span id="motion-time" aria-hidden="true">00.00 / 00.00</span>
+              </div>
+              <input
+                id="motion-progress"
+                type="range"
+                min="0"
+                max="1000"
+                value="0"
+                step="1"
+                aria-label="モーション再生位置"
+                disabled
+              />
+              <div class="motion-actions">
+                <button id="motion-pause" type="button" disabled>PAUSE</button>
+                <button id="motion-stop" type="button" disabled>STOP / ESC</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <footer class="ticker" aria-hidden="true">
           <div>
             <span>SOLAR&#8209;TECH FIELD UNIT</span>
