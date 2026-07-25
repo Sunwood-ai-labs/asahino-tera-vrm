@@ -142,7 +142,8 @@ function startViewer() {
   const chestRest = new THREE.Euler();
   const headRest = new THREE.Euler();
 
-  const clock = new THREE.Clock();
+  const timer = new THREE.Timer();
+  timer.connect(document);
   const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
   let reducedMotion = reducedMotionQuery.matches;
   reducedMotionQuery.addEventListener("change", (event) => {
@@ -157,11 +158,11 @@ function startViewer() {
     const leftLowerArm = humanoid?.getNormalizedBoneNode("leftLowerArm");
     const rightLowerArm = humanoid?.getNormalizedBoneNode("rightLowerArm");
 
-    // Subtle upper-arm z-rotation so the silhouette is not a stiff A-pose.
-    if (leftUpperArm) leftUpperArm.rotation.z = -0.42;
-    if (rightUpperArm) rightUpperArm.rotation.z = 0.42;
-    if (leftLowerArm) leftLowerArm.rotation.y = -0.08;
-    if (rightLowerArm) rightLowerArm.rotation.y = 0.08;
+    // Lower the VRoid T-pose into a relaxed field-observer silhouette.
+    if (leftUpperArm) leftUpperArm.rotation.z = -1.08;
+    if (rightUpperArm) rightUpperArm.rotation.z = 1.08;
+    if (leftLowerArm) leftLowerArm.rotation.y = -0.12;
+    if (rightLowerArm) rightLowerArm.rotation.y = 0.12;
   }
 
   function captureIdleBones(vrm) {
@@ -305,9 +306,10 @@ function startViewer() {
   resize();
 
   // ── Animate (procedural idle: breathing + tiny head sway) ───────────────
-  function animate() {
-    const delta = clock.getDelta();
-    const elapsed = clock.getElapsedTime();
+  function animate(timestamp) {
+    timer.update(timestamp);
+    const delta = timer.getDelta();
+    const elapsed = timer.getElapsed();
     controls.update();
 
     if (currentVrm) {
@@ -398,6 +400,7 @@ function startViewer() {
   window.addEventListener(
     "pagehide",
     () => {
+      timer.dispose();
       liquid?.destroy();
     },
     { once: true },

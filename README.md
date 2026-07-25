@@ -6,6 +6,8 @@ title: 旭野 テラ / ASAHINO TERRA
 
 AI人狼キャラクター「旭野テラ（ASAHINO TERRA）」のVRMモデルと、WebGLによるインタラクティブ・プレビューです。
 
+![旭野テラ DAWN FIELD TERMINAL](artifacts/desktop-relaxed-final.png)
+
 ## Concept — DAWN FIELD TERMINAL / 太陽観測フィールド端末
 
 旭野テラは太陽光を観測するソーラーテックのフィールド調査員であり、AI人狼の局面を冷静に解析するキャラクターです。本リポジトリは「DAWN FIELD TERMINAL（夜明けのフィールド端末）」をコンセプトに、明るい太陽光の映り込み、イオンシアンの流体エフェクト、そして全身を落ち着きで俯瞰するフレーミングで、観測データベースの生きた端末としてモデルを表示します。マウス・タッチでモデルを回転し、スクロールまたはピンチでズームできます。
@@ -33,7 +35,7 @@ npm run preview
 
 ## Controls
 
-5つのコントロールを用意しています（表示ラベルはデザナーが付与します）。
+5つのコントロールを用意しています。
 
 - **AUTO ORBIT** (`#rotate-button`) — 自動回転の ON / OFF
 - **SOLAR / ANALYSIS LIGHT** (`#light-button`) — 太陽光モードと解析光モードの切替
