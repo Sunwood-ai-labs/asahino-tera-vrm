@@ -77,11 +77,11 @@ function startViewer() {
       ? createLiquid(
           { source: liquidSource, content: app, output: liquidOutput },
           {
-            simResolution: 96,
-            dyeResolution: 384,
-            densityDissipation: 0.965,
+            simResolution: 72,
+            dyeResolution: 256,
+            densityDissipation: 0.95,
             velocityDissipation: 0.985,
-            pressureIterations: 4,
+            pressureIterations: 2,
             curl: 2.2,
             radius: 0.2,
             force: 0.82,
@@ -90,6 +90,8 @@ function startViewer() {
             blend: 1.8,
             color: [0.094, 0.718, 0.710], // ion cyan #18B7B5
             rainbow: false,
+            maxFps: 30,
+            outputPixelRatio: 1,
           },
         )
       : null;
@@ -172,6 +174,8 @@ function startViewer() {
   let randomMotionTimer = null;
   let lastRandomMotionId = null;
   let motionsReady = false;
+  let lastTransportSyncAt = 0;
+  let lastTransportSnapshot = "";
 
   // Procedural idle bone handles (captured once the VRM loads).
   let spineBone = null;
@@ -181,8 +185,6 @@ function startViewer() {
   const chestRest = new THREE.Euler();
   const headRest = new THREE.Euler();
 
-  const timer = new THREE.Timer();
-  timer.connect(document);
   const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
   let reducedMotion = reducedMotionQuery.matches;
   reducedMotionQuery.addEventListener("change", (event) => {
@@ -314,16 +316,27 @@ function startViewer() {
     });
   }
 
-  function syncMotionTransport() {
+  function syncMotionTransport({ force = true, now = performance.now() } = {}) {
+    if (!force && now - lastTransportSyncAt < 100) return;
     const duration = activeMotionAction?.getClip().duration ?? 0;
     const time = activeMotionAction?.time ?? 0;
+    const progressValue = duration > 0 ? String(Math.round((time / duration) * 1000)) : "0";
+    const timeValue = `${time.toFixed(2).padStart(5, "0")} / ${duration.toFixed(2).padStart(5, "0")}`;
+    const pauseValue = activeMotionAction?.paused ? "RESUME" : "PAUSE";
+    const snapshot = `${progressValue}|${timeValue}|${pauseValue}`;
+    lastTransportSyncAt = now;
+    if (!force && snapshot === lastTransportSnapshot) return;
+    lastTransportSnapshot = snapshot;
     if (motionProgress) {
-      motionProgress.value = duration > 0 ? String(Math.round((time / duration) * 1000)) : "0";
+      if (motionProgress.value !== progressValue) motionProgress.value = progressValue;
     }
-    if (motionTime) motionTime.textContent = `${time.toFixed(2).padStart(5, "0")} / ${duration.toFixed(2).padStart(5, "0")}`;
+    if (motionTime && motionTime.textContent !== timeValue) motionTime.textContent = timeValue;
     if (motionPauseButton && activeMotionAction) {
-      motionPauseButton.textContent = activeMotionAction.paused ? "RESUME" : "PAUSE";
-      motionPauseButton.setAttribute("aria-pressed", String(activeMotionAction.paused));
+      if (motionPauseButton.textContent !== pauseValue) motionPauseButton.textContent = pauseValue;
+      const ariaPressed = String(activeMotionAction.paused);
+      if (motionPauseButton.getAttribute("aria-pressed") !== ariaPressed) {
+        motionPauseButton.setAttribute("aria-pressed", ariaPressed);
+      }
     }
   }
 
@@ -390,7 +403,11 @@ function startViewer() {
         motionStatus.dataset.state = "playing";
       }
       syncMotionTransport();
-      liquid?.splat(0.44, 0.56, shouldLoop ? 14 : 22, shouldLoop ? -8 : 7);
+      // Random autoplay must not keep the fullscreen fluid simulation awake.
+      // Manual choices still receive the visual feedback pulse.
+      if (!automatic) {
+        liquid?.splat(0.44, 0.56, shouldLoop ? 14 : 22, shouldLoop ? -8 : 7);
+      }
     } catch (error) {
       console.error("[asahino-tera] Failed to play VRMA motion:", error);
       stopMotion({ announce: false });
@@ -585,10 +602,44 @@ function startViewer() {
   resize();
 
   // ── Animate (procedural idle: breathing + tiny head sway) ───────────────
+  // Keep motion smooth while avoiding 120 Hz+ rendering on high-refresh displays.
+  const viewerFrameInterval = 1000 / 60;
+  let viewerRaf = 0;
+  let viewerVisible = true;
+  let viewerRunning = false;
+  let lastViewerFrameAt = 0;
+  let nextViewerFrameAt = 0;
+  let elapsedViewerTime = 0;
+
+  function scheduleViewerFrame() {
+    viewerRaf = requestAnimationFrame(animate);
+  }
+
+  function setViewerRunning(shouldRun) {
+    if (!shouldRun) {
+      viewerRunning = false;
+      cancelAnimationFrame(viewerRaf);
+      canvas.dataset.viewerState = "paused";
+      return;
+    }
+    if (viewerRunning) return;
+    viewerRunning = true;
+    lastViewerFrameAt = performance.now();
+    nextViewerFrameAt = 0;
+    canvas.dataset.viewerState = "running";
+    scheduleViewerFrame();
+  }
+
   function animate(timestamp) {
-    timer.update(timestamp);
-    const delta = timer.getDelta();
-    const elapsed = timer.getElapsed();
+    if (!viewerVisible || document.hidden) return;
+    if (timestamp < nextViewerFrameAt) {
+      scheduleViewerFrame();
+      return;
+    }
+    const delta = Math.min(Math.max((timestamp - lastViewerFrameAt) / 1000, 0), 1 / 30);
+    lastViewerFrameAt = timestamp;
+    nextViewerFrameAt = timestamp + viewerFrameInterval - 1;
+    elapsedViewerTime += delta;
     controls.update();
 
     if (currentVrm) {
@@ -596,19 +647,19 @@ function startViewer() {
         if (!activeMotionAction.paused) motionMixer.update(delta);
         currentVrm.humanoid?.update();
         currentVrm.expressionManager?.update();
-        syncMotionTransport();
+        syncMotionTransport({ force: false, now: timestamp });
       } else {
         const amp = reducedMotion ? 0 : 1;
         if (spineBone) {
-          spineBone.rotation.x = spineRest.x + Math.sin(elapsed * 1.0) * 0.012 * amp;
-          spineBone.rotation.z = spineRest.z + Math.sin(elapsed * 0.8) * 0.008 * amp;
+          spineBone.rotation.x = spineRest.x + Math.sin(elapsedViewerTime * 1.0) * 0.012 * amp;
+          spineBone.rotation.z = spineRest.z + Math.sin(elapsedViewerTime * 0.8) * 0.008 * amp;
         }
         if (chestBone) {
-          chestBone.rotation.x = chestRest.x + Math.sin(elapsed * 1.0 + 0.4) * 0.01 * amp;
+          chestBone.rotation.x = chestRest.x + Math.sin(elapsedViewerTime * 1.0 + 0.4) * 0.01 * amp;
         }
         if (headBone) {
-          headBone.rotation.y = headRest.y + Math.sin(elapsed * 0.5) * 0.028 * amp;
-          headBone.rotation.x = headRest.x + Math.sin(elapsed * 0.65 + 1.0) * 0.012 * amp;
+          headBone.rotation.y = headRest.y + Math.sin(elapsedViewerTime * 0.5) * 0.028 * amp;
+          headBone.rotation.x = headRest.x + Math.sin(elapsedViewerTime * 0.65 + 1.0) * 0.012 * amp;
         }
         currentVrm.humanoid?.update();
       }
@@ -616,9 +667,24 @@ function startViewer() {
     }
 
     renderer.render(scene, camera);
-    requestAnimationFrame(animate);
+    canvas.__viewerRenderCount = (canvas.__viewerRenderCount ?? 0) + 1;
+    scheduleViewerFrame();
   }
-  animate();
+
+  const viewerIntersection = new IntersectionObserver(
+    (entries) => {
+      viewerVisible = entries[entries.length - 1]?.isIntersecting ?? true;
+      setViewerRunning(viewerVisible && !document.hidden);
+    },
+    { rootMargin: "160px 0px" },
+  );
+  viewerIntersection.observe(viewerShell);
+
+  function onViewerVisibilityChange() {
+    setViewerRunning(viewerVisible && !document.hidden);
+  }
+  document.addEventListener("visibilitychange", onViewerVisibilityChange);
+  setViewerRunning(true);
 
   // ── Controls wiring ─────────────────────────────────────────────────────
 
@@ -750,7 +816,10 @@ function startViewer() {
     "pagehide",
     () => {
       clearRandomMotionTimer();
-      timer.dispose();
+      viewerRunning = false;
+      cancelAnimationFrame(viewerRaf);
+      viewerIntersection.disconnect();
+      document.removeEventListener("visibilitychange", onViewerVisibilityChange);
       liquid?.destroy();
     },
     { once: true },

@@ -27,6 +27,10 @@ export interface LiquidOptions {
   color?: [number, number, number];
   /** Color the trail from the flow direction instead of a fixed color. */
   rainbow?: boolean;
+  /** Maximum simulation/render cadence. */
+  maxFps?: number;
+  /** Maximum output canvas pixel ratio. */
+  outputPixelRatio?: number;
 }
 export interface LiquidElements {
   /** Canvas with layoutsubtree that hosts the HTML content. */
@@ -63,6 +67,8 @@ const DEFAULTS: Required<LiquidOptions> = {
   blend: 5,
   color: [0.145, 0.239, 0.867],
   rainbow: false,
+  maxFps: 60,
+  outputPixelRatio: 1,
 };
 
 const DT = 1 / 60;
@@ -525,7 +531,10 @@ export function createLiquid(
   }
 
   function syncCanvasSize() {
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const dpr = Math.min(
+      window.devicePixelRatio || 1,
+      Math.max(config.outputPixelRatio, 0.5),
+    );
     const width = Math.max(1, Math.round(output.clientWidth * dpr));
     const height = Math.max(1, Math.round(output.clientHeight * dpr));
     if (output.width !== width || output.height !== height) {
@@ -753,9 +762,13 @@ export function createLiquid(
   }
 
   const queued: Array<[number, number, number, number]> = [];
+  const measurableOutput = output as HTMLCanvasElement & {
+    __liquidRenderCount?: number;
+  };
 
   let raf = 0;
   let lastTime = performance.now();
+  let nextFrameAt = 0;
   let destroyed = false;
   let running = false;
   let visible = true;
@@ -771,10 +784,17 @@ export function createLiquid(
     if (destroyed) return;
     if (!visible) {
       running = false;
+      output.dataset.liquidState = "paused";
+      return;
+    }
+    const frameInterval = 1000 / Math.max(config.maxFps, 1);
+    if (now < nextFrameAt) {
+      raf = requestAnimationFrame(frame);
       return;
     }
     const delta = Math.min((now - lastTime) / 1000, 1 / 30);
     lastTime = now;
+    nextFrameAt = now + frameInterval - 1;
     if (queued.length > 0) {
       idleAt = now + idleDelayMs();
       while (queued.length > 0) {
@@ -784,8 +804,11 @@ export function createLiquid(
     }
     step(delta);
     render();
+    measurableOutput.__liquidRenderCount =
+      (measurableOutput.__liquidRenderCount ?? 0) + 1;
     if (now >= idleAt && !contentDirty) {
       running = false;
+      output.dataset.liquidState = "idle";
       return;
     }
     raf = requestAnimationFrame(frame);
@@ -794,7 +817,9 @@ export function createLiquid(
   function start() {
     if (destroyed || running || !visible) return;
     running = true;
+    output.dataset.liquidState = "running";
     lastTime = performance.now();
+    nextFrameAt = 0;
     raf = requestAnimationFrame(frame);
   }
 
@@ -849,9 +874,26 @@ export function createLiquid(
 
   const intersection = new IntersectionObserver((entries) => {
     visible = entries[entries.length - 1]?.isIntersecting ?? true;
-    if (visible) start();
+    if (visible && !document.hidden) {
+      start();
+    } else {
+      cancelAnimationFrame(raf);
+      running = false;
+      output.dataset.liquidState = "paused";
+    }
   });
   intersection.observe(output);
+
+  function onVisibilityChange() {
+    if (document.hidden) {
+      cancelAnimationFrame(raf);
+      running = false;
+      output.dataset.liquidState = "paused";
+      return;
+    }
+    if (visible) start();
+  }
+  document.addEventListener("visibilitychange", onVisibilityChange);
 
   return {
     splat(x, y, dx, dy) {
@@ -875,7 +917,9 @@ export function createLiquid(
       cancelAnimationFrame(raf);
       observer.disconnect();
       intersection.disconnect();
+      document.removeEventListener("visibilitychange", onVisibilityChange);
       motionQuery.removeEventListener("change", onMotionChange);
+      output.dataset.liquidState = "destroyed";
       releaseAll();
       gl!.deleteTexture(contentTexture);
       programs.forEach((program) => gl!.deleteProgram(program));
